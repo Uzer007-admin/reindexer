@@ -17,6 +17,7 @@ struct SelectCtx {
 	SelectFunctionsHolder *functions = nullptr;
 
 	JoinPreResult::Ptr preResult;
+	ExplainCalc::Duration preResultTimeTotal = ExplainCalc::Duration::zero();
 	SortingContext sortingContext;
 	uint8_t nsid = 0;
 	bool isForceAll = false;

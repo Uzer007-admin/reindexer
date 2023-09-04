@@ -359,7 +359,7 @@ int Variant::Compare(const Variant &other, const CollateOpts &collateOpts) const
 					   : (variant_.value_double > other.variant_.value_double) ? 1
 																			   : -1;
 			},
-			[&](KeyValueType::Tuple) { return getCompositeValues() == other.getCompositeValues() ? 0 : 1; },
+			[&](KeyValueType::Tuple) -> int { throw Error(errParams, "KeyValueType::Tuple comparison is not implemented"); },
 			[&](KeyValueType::String) { return collateCompare(this->operator p_string(), other.operator p_string(), collateOpts); },
 			[&](KeyValueType::Uuid) { return Uuid{*this}.Compare(Uuid{other}); },
 			[](KeyValueType::Null) -> int {

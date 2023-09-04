@@ -1,4 +1,5 @@
 #include "core/reindexerimpl.h"
+
 #include <stdio.h>
 #include <chrono>
 #include <thread>
@@ -1005,7 +1006,7 @@ JoinedSelectors ReindexerImpl::prepareJoinedSelectors(const Query& q, QueryResul
 	// For each joined queries
 	uint32_t joinedSelectorsCount = uint32_t(q.joinQueries_.size());
 	for (auto& jq : q.joinQueries_) {
-		if (rx_unlikely(isSystemNamespaceNameFast(jq._namespace))) {
+		if rx_unlikely (isSystemNamespaceNameFast(jq._namespace)) {
 			throw Error(errParams, "Queries to system namespaces ('%s') are not supported inside JOIN statement", jq._namespace);
 		}
 
@@ -1103,16 +1104,19 @@ void ReindexerImpl::doSelect(const Query& q, QueryResults& result, NsLocker<T>& 
 	auto ns = locks.Get(q._namespace);
 	assertrx(ns);
 	if (!ns) {
-		throw Error(errParams, "Namespace '%s' is not exists", q._namespace);
+		throw Error(errParams, "Namespace '%s' does not exist", q._namespace);
 	}
 	std::vector<QueryResultsContext> joinQueryResultsContexts;
+	const auto preselectStartTime = ExplainCalc::Clock::now();
 	// should be destroyed after results.lockResults()
 	JoinedSelectors mainJoinedSelectors = prepareJoinedSelectors(q, result, locks, func, joinQueryResultsContexts, ctx);
 	prepareJoinResults(q, result);
+	const ExplainCalc::Duration preselectTimeTotal = ExplainCalc::Clock::now() - preselectStartTime;
 	IsFTQuery isFtQuery{IsFTQuery::NotSet};
 	{
 		SelectCtx selCtx(q, nullptr);
 		selCtx.joinedSelectors = mainJoinedSelectors.size() ? &mainJoinedSelectors : nullptr;
+		selCtx.preResultTimeTotal = preselectTimeTotal;
 		selCtx.contextCollectingMode = true;
 		selCtx.functions = &func;
 		selCtx.nsid = 0;
@@ -1141,16 +1145,16 @@ void ReindexerImpl::doSelect(const Query& q, QueryResults& result, NsLocker<T>& 
 		uint8_t counter = 0;
 
 		for (auto& mq : q.mergeQueries_) {
-			if (rx_unlikely(isSystemNamespaceNameFast(mq._namespace))) {
+			if rx_unlikely (isSystemNamespaceNameFast(mq._namespace)) {
 				throw Error(errParams, "Queries to system namespaces ('%s') are not supported inside MERGE statement", mq._namespace);
 			}
-			if (rx_unlikely(!mq.sortingEntries_.empty())) {
+			if rx_unlikely (!mq.sortingEntries_.empty()) {
 				throw Error(errParams, "Sorting in inner merge query is not allowed");
 			}
-			if (rx_unlikely(!mq.aggregations_.empty())) {
+			if rx_unlikely (!mq.aggregations_.empty()) {
 				throw Error(errParams, "Aggregations in inner merge query is not allowed");
 			}
-			if (rx_unlikely(mq.HasLimit() || mq.HasOffset())) {
+			if rx_unlikely (mq.HasLimit() || mq.HasOffset()) {
 				throw Error(errParams, "Limit and offset in inner merge query is not allowed");
 			}
 			auto mns = locks.Get(mq._namespace);

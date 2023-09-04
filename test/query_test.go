@@ -240,6 +240,12 @@ func (tx *txTest) UpsertAsync(s interface{}, cmpl bindings.Completion) error {
 	return tx.tx.UpsertAsync(s, cmpl)
 }
 
+func (tx *txTest) DeleteAsync(s interface{}, cmpl bindings.Completion) error {
+	val := reflect.Indirect(reflect.ValueOf(s))
+	tx.ns.items[getPK(tx.ns, val)] = s
+	return tx.tx.DeleteAsync(s, cmpl)
+}
+
 func (tx *txTest) Commit() (int, error) {
 	res, err := tx.tx.CommitWithCount()
 	tx.db.SetSyncRequired()

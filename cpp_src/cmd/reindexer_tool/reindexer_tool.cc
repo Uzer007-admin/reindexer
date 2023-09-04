@@ -43,7 +43,12 @@ int main(int argc, char* argv[]) {
 	using namespace reindexer_tool;
 	reindexer::debug::backtrace_init();
 
-	reindexer::CheckRequiredSSESupport();
+	try {
+		reindexer::CheckRequiredSSESupport();
+	} catch (Error& err) {
+		std::cerr << err.what();
+		return EXIT_FAILURE;
+	}
 
 	args::ArgumentParser parser("Reindexer client tool");
 	args::HelpFlag help(parser, "help", "show this message", {'h', "help"});

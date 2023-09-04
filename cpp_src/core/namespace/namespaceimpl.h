@@ -100,7 +100,7 @@ class NamespaceImpl {  // NOLINT(*performance.Padding) Padding does not matter f
 		IndexesCacheCleaner &operator=(const IndexesCacheCleaner &) = delete;
 		IndexesCacheCleaner &operator=(IndexesCacheCleaner &&) = delete;
 		void Add(SortType s) {
-			if (rx_unlikely(s >= sorts_.size())) {
+			if rx_unlikely (s >= sorts_.size()) {
 				throw Error(errLogic, "Index sort type overflow: %d. Limit is %d", s, sorts_.size() - 1);
 			}
 			if (s > 0) {

@@ -587,7 +587,7 @@ func TestSTDistanceWrappers(t *testing.T) {
 			require.NoError(t, err)
 			it2, err := DBD.Query(ns).DWithin(field1, searchPoint, distance).Sort(fmt.Sprintf("ST_Distance(%s, ST_GeomFromText('point(%f %f)'))", field1, sortPoint[0], sortPoint[1]), false).ExecToJson().FetchAll()
 			require.NoError(t, err)
-			require.Equal(t, it1, it2)
+			require.Equal(t, string(it1), string(it2))
 		}
 	})
 	t.Run("ST_Distance between fields", func(t *testing.T) {
@@ -598,7 +598,7 @@ func TestSTDistanceWrappers(t *testing.T) {
 			require.NoError(t, err)
 			it2, err := DBD.Query(ns).DWithin(field1, searchPoint, distance).Sort(fmt.Sprintf("ST_Distance(%s, %s)", field1, field2), true).ExecToJson().FetchAll()
 			require.NoError(t, err)
-			require.Equal(t, it1, it2)
+			require.Equal(t, string(it1), string(it2))
 		}
 	})
 }

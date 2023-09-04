@@ -1,4 +1,6 @@
 #include "nsselecter.h"
+
+#include "core/cjson/jsonbuilder.h"
 #include "core/namespace/namespaceimpl.h"
 #include "core/queryresults/joinresults.h"
 #include "crashqueryreporter.h"
@@ -30,6 +32,7 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 	explain = ExplainCalc(ctx.query.explain_ || ctx.query.debugLevel >= LogInfo);
 	ActiveQueryScope queryScope(ctx, ns_->optimizationState_, explain, ns_->locker_.IsReadOnly(), ns_->strHolder_.get());
 
+	explain.SetPreselectTime(ctx.preResultTimeTotal);
 	explain.StartTiming();
 
 	auto containSomeAggCount = [&ctx](const AggType &type) {
@@ -59,12 +62,14 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 		}
 	}
 
+	OnConditionInjections explainInjectedOnConditions;
 	QueryPreprocessor qPreproc((ctx.preResult && ctx.preResult->executionMode == JoinPreResult::ModeExecute)
 								   ? const_cast<QueryEntries *>(&ctx.query.entries)->MakeLazyCopy()
 								   : QueryEntries{ctx.query.entries},
 							   ns_, ctx);
 	if (ctx.joinedSelectors) {
-		qPreproc.InjectConditionsFromJoins(*ctx.joinedSelectors, rdxCtx);
+		qPreproc.InjectConditionsFromJoins(*ctx.joinedSelectors, explainInjectedOnConditions, rdxCtx);
+		explain.PutOnConditionInjections(&explainInjectedOnConditions);
 	}
 	auto aggregators = getAggregators(ctx.query);
 	qPreproc.AddDistinctEntries(aggregators);
@@ -170,7 +175,8 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 					SelectKeyResult res;
 					res.emplace_back(std::move(ctx.preResult->ids));
 					static const std::string pr = "-preresult";
-					qres.Append(OpAnd, SelectIterator(std::move(res), false, pr));
+					// Iterator Field Kind: Preselect IdSet -> None
+					qres.Append(OpAnd, SelectIterator(std::move(res), false, pr, IteratorFieldKind::None));
 				} break;
 				case JoinPreResult::ModeIterators:
 					qres.LazyAppend(ctx.preResult->iterators.begin(), ctx.preResult->iterators.end());
@@ -202,7 +208,7 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 							!ctx.sortingContext.sortIndex())				   // 2. We have sorted query, by unordered index
 						   || ctx.preResult->btreeIndexOptimizationEnabled) {  // 3. We have btree-index that is not committed yet
 					ctx.preResult->iterators.Append(qres.cbegin(), qres.cend());
-					if (rx_unlikely(ctx.query.debugLevel >= LogInfo)) {
+					if rx_unlikely (ctx.query.debugLevel >= LogInfo) {
 						logPrintf(LogInfo, "Built preResult (expected %d iterations) with %d iterators, q='%s'", maxIterations, qres.Size(),
 								  ctx.query.GetSQL());
 					}
@@ -261,7 +267,8 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 				scan.emplace_back(0, limit);
 				maxIterations = limit;
 			}
-			qres.AppendFront(OpAnd, SelectIterator{std::move(scan), false, "-scan", true});
+			// Iterator Field Kind: -scan. Sorting Context! -> None
+			qres.AppendFront(OpAnd, SelectIterator{std::move(scan), false, "-scan", IteratorFieldKind::None, true});
 		}
 		// Get maximum iterations count, for right calculation comparators costs
 		qres.SortByCost(maxIterations);
@@ -269,7 +276,7 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 		// Check idset must be 1st
 		qres.CheckFirstQuery();
 
-		// Rewing all results iterators
+		// Rewind all results iterators
 		qres.ExecuteAppropriateForEach(Skip<JoinSelectIterator, SelectIteratorsBracket, FieldsComparator, AlwaysFalse>{},
 									   [reverse, maxIterations](SelectIterator &it) { it.Start(reverse, maxIterations); });
 
@@ -365,7 +372,7 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 	explain.PutSelectors(&qresHolder.GetResultsRef());
 	explain.PutJoinedSelectors(ctx.joinedSelectors);
 
-	if (rx_unlikely(ctx.query.debugLevel >= LogInfo)) {
+	if rx_unlikely (ctx.query.debugLevel >= LogInfo) {
 		logPrintf(LogInfo, "%s", ctx.query.GetSQL());
 		explain.LogDump(ctx.query.debugLevel);
 	}
@@ -376,7 +383,7 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 			result.explainResults = explain.GetJSON();
 		}
 	}
-	if (rx_unlikely(ctx.query.debugLevel >= LogTrace)) {
+	if rx_unlikely (ctx.query.debugLevel >= LogTrace) {
 		logPrintf(LogInfo, "Query returned: [%s]; total=%d", result.Dump(), result.totalCount);
 	}
 
@@ -387,13 +394,13 @@ void NsSelecter::operator()(QueryResults &result, SelectCtx &ctx, const RdxConte
 	if (ctx.preResult && ctx.preResult->executionMode == JoinPreResult::ModeBuild) {
 		switch (ctx.preResult->dataMode) {
 			case JoinPreResult::ModeIdSet:
-				if (rx_unlikely(ctx.query.debugLevel >= LogInfo)) {
+				if rx_unlikely (ctx.query.debugLevel >= LogInfo) {
 					logPrintf(LogInfo, "Built idset preResult (expected %d iterations) with %d ids, q = '%s'", explain.Iterations(),
 							  ctx.preResult->ids.size(), ctx.query.GetSQL());
 				}
 				break;
 			case JoinPreResult::ModeValues:
-				if (rx_unlikely(ctx.query.debugLevel >= LogInfo)) {
+				if rx_unlikely (ctx.query.debugLevel >= LogInfo) {
 					logPrintf(LogInfo, "Built values preResult (expected %d iterations) with %d values, q = '%s'", explain.Iterations(),
 							  ctx.preResult->values.size(), ctx.query.GetSQL());
 				}

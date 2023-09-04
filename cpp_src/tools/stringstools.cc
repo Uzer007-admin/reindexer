@@ -318,24 +318,6 @@ void split(std::string_view utf8Str, wstring &utf16str, std::vector<std::wstring
 	}
 }
 
-bool iequals(std::string_view lhs, std::string_view rhs) noexcept {
-	if (lhs.size() != rhs.size()) return false;
-	for (auto itl = lhs.begin(), itr = rhs.begin(); itl != lhs.end() && itr != rhs.end();) {
-		if (tolower(*itl++) != tolower(*itr++)) return false;
-	}
-	return true;
-}
-
-bool iless(std::string_view lhs, std::string_view rhs) noexcept {
-	const auto len = std::min(lhs.size(), rhs.size());
-	for (size_t i = 0; i < len; ++i) {
-		if (const auto l = tolower(lhs[i]), r = tolower(rhs[i]); l != r) {
-			return l < r;
-		}
-	}
-	return lhs.size() < rhs.size();
-}
-
 template <CaseSensitive sensitivity>
 bool checkIfStartsWith(std::string_view pattern, std::string_view str) noexcept {
 	if (pattern.empty() || str.empty()) return false;

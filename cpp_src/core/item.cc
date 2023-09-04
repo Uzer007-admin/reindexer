@@ -52,12 +52,12 @@ Item::FieldRef::operator Variant() const {
 }
 
 Item::FieldRef::operator VariantArray() const {
-	VariantArray kr;
-	if (field_ >= 0)
+	if (field_ >= 0) {
+		VariantArray kr;
 		itemImpl_->GetPayload().Get(field_, kr);
-	else
-		kr = itemImpl_->GetValueByJSONPath(jsonPath_);
-	return kr;
+		return kr;
+	}
+	return itemImpl_->GetValueByJSONPath(jsonPath_);
 }
 
 Item::FieldRef &Item::FieldRef::operator=(Variant kr) {

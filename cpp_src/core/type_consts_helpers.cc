@@ -1,4 +1,5 @@
 #include "type_consts_helpers.h"
+
 #include "tools/errors.h"
 
 namespace reindexer {
@@ -109,6 +110,23 @@ namespace reindexer {
 		default:
 			return "unknown"sv;
 	}
+}
+
+[[nodiscard]] std::string_view JoinTypeName(JoinType type) {
+	using namespace std::string_view_literals;
+
+	switch (type) {
+		case JoinType::InnerJoin:
+			return "INNER JOIN"sv;
+		case JoinType::OrInnerJoin:
+			return "OR INNER JOIN"sv;
+		case JoinType::LeftJoin:
+			return "LEFT JOIN"sv;
+		case JoinType::Merge:
+			return "MERGE"sv;
+	}
+	assertrx(false);
+	return "unknown"sv;
 }
 
 }  // namespace reindexer

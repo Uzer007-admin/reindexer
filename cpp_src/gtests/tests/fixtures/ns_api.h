@@ -96,6 +96,28 @@ protected:
 		}
 	}
 
+	void CreateEmptyArraysNamespace(const std::string& nsName) {
+		Error err = rt.reindexer->OpenNamespace(nsName);
+		ASSERT_TRUE(err.ok()) << err.what();
+
+		DefineNamespaceDataset(nsName, {IndexDeclaration{idIdxName.c_str(), "hash", "int", IndexOpts().PK(), 0},
+										IndexDeclaration{indexedArrayField.c_str(), "hash", "int", IndexOpts().Array(), 0}});
+
+		char sourceJson[1024];
+		const char jsonPattern[] = R"json({"id": %s, "indexed_array_field": [], "non_indexed_array_field": []})json";
+		for (size_t i = 100; i < 200; ++i) {
+			Item item = NewItem(nsName);
+			EXPECT_TRUE(item.Status().ok()) << item.Status().what();
+
+			std::string serial = std::to_string(i);
+			snprintf(sourceJson, sizeof(sourceJson) - 1, jsonPattern, serial.c_str());
+
+			err = item.FromJSON(sourceJson);
+			EXPECT_TRUE(err.ok()) << err.what();
+			Upsert(nsName, item);
+		}
+	}
+
 	void InsertNewTruncateItem(int i) {
 		Item item = NewItem(truncate_namespace);
 		item[idIdxName] = i;

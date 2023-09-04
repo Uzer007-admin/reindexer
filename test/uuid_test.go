@@ -106,10 +106,11 @@ func checkExplainSelect(t *testing.T, it reindexer.Iterator, item interface{}) {
 	assert.NoError(t, err)
 	checkExplain(t, explainRes.Selectors, []expectedExplain{
 		{
-			Field:   "uuid",
-			Method:  "index",
-			Keys:    1,
-			Matched: 1,
+			Field:     "uuid",
+			FieldType: "indexed",
+			Method:    "index",
+			Keys:      1,
+			Matched:   1,
 		},
 	}, "")
 }

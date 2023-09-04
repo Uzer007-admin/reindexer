@@ -1273,7 +1273,7 @@ void NamespaceImpl::Update(const Query& query, QueryResults& result, const NsCon
 		if (!ctx.rdxContext.fromReplication_) setReplLSNs(LSNPair(lsn_t(), lsn));
 	}
 
-	if (rx_unlikely(query.debugLevel >= LogInfo)) {
+	if rx_unlikely (query.debugLevel >= LogInfo) {
 		logPrintf(LogInfo, "Updated %d items in %d µs", result.Count(),
 				  duration_cast<microseconds>(high_resolution_clock::now() - tmStart).count());
 	}
@@ -1463,7 +1463,7 @@ void NamespaceImpl::Delete(const Query& q, QueryResults& result, const NsContext
 			processWalRecord(wrec, ctx.rdxContext);
 		}
 	}
-	if (rx_unlikely(q.debugLevel >= LogInfo)) {
+	if rx_unlikely (q.debugLevel >= LogInfo) {
 		logPrintf(LogInfo, "Deleted %d items in %d µs", result.Count(),
 				  duration_cast<microseconds>(high_resolution_clock::now() - tmStart).count());
 	}
