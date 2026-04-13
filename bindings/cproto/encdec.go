@@ -2,12 +2,15 @@ package cproto
 
 import (
 	"fmt"
+	"sync"
 	"unsafe"
 
 	"github.com/golang/snappy"
 	"github.com/restream/reindexer/v5/bindings"
 	"github.com/restream/reindexer/v5/cjson"
 )
+
+var snappyEncodeBufPool sync.Pool
 
 type rpcEncoder struct {
 	lastArgsChunckStart int
@@ -105,9 +108,20 @@ func (r *rpcEncoder) update() {
 
 func (r *rpcEncoder) bytes() []byte {
 	if r.enableSnappy {
-		out := snappy.Encode(nil, r.ser.Bytes()[cprotoHdrLen:])
+		payload := r.ser.Bytes()[cprotoHdrLen:]
+		maxEncodedLen := snappy.MaxEncodedLen(len(payload))
+		tmp := snappyEncodeBufPool.Get()
+		var encodeBuf []byte
+		if tmp != nil {
+			encodeBuf = tmp.([]byte)
+		}
+		if cap(encodeBuf) < maxEncodedLen {
+			encodeBuf = make([]byte, 0, maxEncodedLen)
+		}
+		out := snappy.Encode(encodeBuf[:0], payload)
 		r.ser.Truncate(cprotoHdrLen)
 		r.ser.Write(out)
+		snappyEncodeBufPool.Put(out[:0])
 		*(*uint16)(unsafe.Pointer(&r.ser.Bytes()[4])) |= cprotoVersionCompressionFlag
 		*(*uint32)(unsafe.Pointer(&r.ser.Bytes()[8])) = uint32(len(r.ser.Bytes()) - cprotoHdrLen)
 	}

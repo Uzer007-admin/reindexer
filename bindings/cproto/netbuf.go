@@ -11,11 +11,12 @@ import (
 var bufPool sync.Pool
 
 type NetBuffer struct {
-	buf   []byte
-	conn  connection
-	reqID int
-	uid   int64
-	args  []any
+	buf     []byte
+	decoded []byte
+	conn    connection
+	reqID   int
+	uid     int64
+	args    []interface{}
 }
 
 func (buf *NetBuffer) Fetch(ctx context.Context, offset, limit int, asJson bool) (err error) {
@@ -139,6 +140,7 @@ func newNetBuffer(size int, conn connection) (buf *NetBuffer) {
 }
 
 func (buf *NetBuffer) decompress() (err error) {
-	buf.buf, err = snappy.Decode(nil, buf.buf)
+	buf.decoded, err = snappy.Decode(buf.decoded[:0], buf.buf)
+	buf.buf = buf.decoded
 	return err
 }
