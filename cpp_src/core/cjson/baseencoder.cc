@@ -184,6 +184,14 @@ bool BaseEncoder<Builder>::encode(ConstPayload* pl, Serializer& rdser, BuilderT&
 	if constexpr (std::is_same_v<TagT, TagName>) {
 		assertrx_dbg(indexedTag.IsEmpty());
 		indexedTag = tagName;
+		if constexpr (kWithTagsPathTracking) {
+			if (indexedTag.IsEmpty() && tagField >= 0 && pl) {
+				const auto resolvedTag = tagsMatcher_->name2tag(pl->Field(tagField).Name());
+				if (!resolvedTag.IsEmpty()) {
+					indexedTag = resolvedTag;
+				}
+			}
+		}
 	} else {
 		assertrx_dbg(tag.Name().IsEmpty());
 	}

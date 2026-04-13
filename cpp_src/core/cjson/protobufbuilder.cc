@@ -255,7 +255,7 @@ void ProtobufBuilder::put(concepts::TagNameOrIndex auto tag, const Variant& val)
 							 [&](KeyValueType::Tuple) {
 								 auto arrNode = ArrayPacked(tag);
 								 for (auto& itVal : val.getCompositeValues()) {
-									 arrNode.Put(tag, itVal, 0);
+									 arrNode.Put(TagName::Empty(), itVal, 0);
 								 }
 							 },
 							 [&](KeyValueType::Uuid) { put(tag, Uuid{val}); },

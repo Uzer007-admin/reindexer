@@ -38,7 +38,10 @@ public:
 		  tagsPath_(obj.tagsPath_),
 		  schema_(obj.schema_),
 		  sizeHelper_(std::move(obj.sizeHelper_)),
-		  itemsFieldIndex_(obj.itemsFieldIndex_) {}
+		  itemsFieldIndex_(obj.itemsFieldIndex_) {
+		obj.type_ = ObjType::TypePlain;
+	}
+
 	ProtobufBuilder(const ProtobufBuilder&) = delete;
 	ProtobufBuilder& operator=(ProtobufBuilder&&) = delete;
 	ProtobufBuilder& operator=(const ProtobufBuilder&) = delete;

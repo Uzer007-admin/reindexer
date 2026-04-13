@@ -470,13 +470,13 @@ TEST_F(ReindexerApi, ProtobufEncodingTest) {
 	builder.Put(reindexer::TagName(person.kSalaryFieldNumber), kSalaryValue);
 	auto bonuses = builder.ArrayPacked(reindexer::TagName(person.kBonusesFieldNumber));
 	for (int64_t i = 0; i < 10; ++i) {
-		bonuses.Put(reindexer::TagName(person.kBonusesFieldNumber), i);
+		bonuses.Put(reindexer::TagName::Empty(), i)
 	}
 	bonuses.End();
 
 	auto indexedPackedDouble = builder.ArrayPacked(reindexer::TagName(person.kIndexedPackedDoubleFieldNumber));
 	for (int i = 0; i < 10; ++i) {
-		indexedPackedDouble.Put(reindexer::TagName(person.kIndexedPackedDoubleFieldNumber), double(i) + 0.55f);
+		indexedPackedDouble.Put(reindexer::TagName::Empty(), double(i) + 0.55f);
 	}
 	indexedPackedDouble.End();
 
@@ -716,7 +716,9 @@ TEST_F(ReindexerApi, ProtobufDecodingTest) {
 	builder.Put(nsItem.GetFieldTag("salary"), kSalaryValue);
 	auto bonuses = builder.ArrayPacked(nsItem.GetFieldTag("bonuses"));
 	for (int64_t i = 0; i < 10; ++i) {
-		bonuses.Put(reindexer::TagName(9), i);
+		bonuses.Put(reindexer::TagName::Empty(), i);
+	}
+
 	}
 	bonuses.End();
 
