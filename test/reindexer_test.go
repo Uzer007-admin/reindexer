@@ -79,6 +79,7 @@ func TestMain(m *testing.M) {
 
 	flag.Var(&cluster, "cluster", "array of reindex db dsn")
 	flag.Parse()
+	initBenchSeedData()
 
 	udsn, err := url.Parse(*dsn)
 	if err != nil {

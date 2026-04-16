@@ -411,160 +411,192 @@ func makeLikePattern(s string) string {
 }
 
 func newTestItem(id int, pkgsCount int) any {
-	startTime := rand.Int() % 50000
+	return newTestItemWithRand(defaultTestRandSource{}, id, pkgsCount)
+}
+
+func newTestItemWithRand(rng testRandSource, id int, pkgsCount int) any {
+	startTime := rng.Int() % 50000
 	return &TestItem{
 		ID:            mkID(id),
-		Year:          rand.Int()%50 + 2000,
-		Genre:         int64(rand.Int() % 50),
-		Name:          randString(),
-		Age:           rand.Int() % 5,
-		AgeLimit:      int64(rand.Int()%10 + 40),
-		CompanyName:   randString(),
-		Address:       randString(),
-		PostalCode:    randPostalCode(),
-		Description:   randString(),
-		Packages:      randIntArr(10, 10000, 50),
-		Rate:          float64(rand.Int()%100) / 10,
-		ExchangeRate:  rand.Float64(),
-		PollutionRate: rand.Float32(),
-		IsDeleted:     rand.Int()%2 != 0,
-		PricesIDs:     randIntArr(10, 7000, 50),
-		LocationID:    randLocation(),
+		Year:          rng.Int()%50 + 2000,
+		Genre:         int64(rng.Int() % 50),
+		Name:          randStringWithRand(rng),
+		Age:           rng.Int() % 5,
+		AgeLimit:      int64(rng.Int()%10 + 40),
+		CompanyName:   randStringWithRand(rng),
+		Address:       randStringWithRand(rng),
+		PostalCode:    randPostalCodeWithRand(rng),
+		Description:   randStringWithRand(rng),
+		Packages:      randIntArrWithRand(rng, 10, 10000, 50),
+		Rate:          float64(rng.Int()%100) / 10,
+		ExchangeRate:  rng.Float64(),
+		PollutionRate: rng.Float32(),
+		IsDeleted:     rng.Int()%2 != 0,
+		PricesIDs:     randIntArrWithRand(rng, 10, 7000, 50),
+		LocationID:    randLocationWithRand(rng),
 		StartTime:     startTime,
-		EndTime:       startTime + (rand.Int()%5)*1000,
+		EndTime:       startTime + (rng.Int()%5)*1000,
 		Actor: Actor{
-			Name: randString(),
+			Name: randStringWithRand(rng),
 		},
-		Uuid:      randUuid(),
-		UuidStore: randUuid(),
-		UuidArray: randUuidArray(rand.Int() % 20),
+		Uuid:      randUuidWithRand(rng),
+		UuidStore: randUuidWithRand(rng),
+		UuidArray: randUuidArrayWithRand(rng, rng.Int()%20),
 	}
 }
 
 func newTestItemSimple(id int, pkgsCount int) any {
+	return newTestItemSimpleWithRand(defaultTestRandSource{}, id, pkgsCount)
+}
+
+func newTestItemSimpleWithRand(rng testRandSource, id int, pkgsCount int) any {
 	return &TestItemSimple{
 		ID:   mkID(id),
-		Year: rand.Int()%50 + 2000,
-		Name: randString(),
+		Year: rng.Int()%50 + 2000,
+		Name: randStringWithRand(rng),
 	}
 }
 
 func newTestItemGeom(id int, pkgsCount int) any {
+	return newTestItemGeomWithRand(defaultTestRandSource{}, id, pkgsCount)
+}
+
+func newTestItemGeomWithRand(rng testRandSource, id int, pkgsCount int) any {
 	return &TestItemGeom{
 		ID:                  mkID(id),
-		PointRTreeLinear:    randPoint(),
-		PointRTreeQuadratic: randPoint(),
-		PointRTreeGreene:    randPoint(),
-		PointRTreeRStar:     randPoint(),
-		PointNonIndex:       randPoint(),
+		PointRTreeLinear:    randPointWithRand(rng),
+		PointRTreeQuadratic: randPointWithRand(rng),
+		PointRTreeGreene:    randPointWithRand(rng),
+		PointRTreeRStar:     randPointWithRand(rng),
+		PointNonIndex:       randPointWithRand(rng),
 	}
 }
 
 func newTestItemGeomSimple(id int, pkgsCount int) any {
+	return newTestItemGeomSimpleWithRand(defaultTestRandSource{}, id, pkgsCount)
+}
+
+func newTestItemGeomSimpleWithRand(rng testRandSource, id int, pkgsCount int) any {
 	return &TestItemGeomSimple{
 		ID:                  mkID(id),
-		PointRTreeLinear:    randPoint(),
-		PointRTreeQuadratic: randPoint(),
+		PointRTreeLinear:    randPointWithRand(rng),
+		PointRTreeQuadratic: randPointWithRand(rng),
 	}
 }
 
 func newTestItemIDOnly(id int, pkgsCount int) any {
-	startTime := rand.Int() % 50000
+	return newTestItemIDOnlyWithRand(defaultTestRandSource{}, id, pkgsCount)
+}
+
+func newTestItemIDOnlyWithRand(rng testRandSource, id int, pkgsCount int) any {
+	startTime := rng.Int() % 50000
 	return &TestItemIDOnly{
 		ID:            mkID(id),
-		Year:          rand.Int()%50 + 2000,
-		Genre:         int64(rand.Int() % 50),
-		Name:          randString(),
-		Age:           rand.Int() % 5,
-		AgeLimit:      int64(rand.Int()%10 + 40),
-		CompanyName:   randString(),
-		Address:       randString(),
-		PostalCode:    randPostalCode(),
-		Description:   randString(),
-		Packages:      randIntArr(pkgsCount, 10000, 50),
-		Rate:          float64(rand.Int()%100) / 10,
-		ExchangeRate:  rand.Float64(),
-		PollutionRate: rand.Float32(),
-		IsDeleted:     rand.Int()%2 != 0,
-		PricesIDs:     rand.Int() % 100, //randIntArr(10, 7000, 50),
-		LocationID:    randLocation(),
+		Year:          rng.Int()%50 + 2000,
+		Genre:         int64(rng.Int() % 50),
+		Name:          randStringWithRand(rng),
+		Age:           rng.Int() % 5,
+		AgeLimit:      int64(rng.Int()%10 + 40),
+		CompanyName:   randStringWithRand(rng),
+		Address:       randStringWithRand(rng),
+		PostalCode:    randPostalCodeWithRand(rng),
+		Description:   randStringWithRand(rng),
+		Packages:      randIntArrWithRand(rng, pkgsCount, 10000, 50),
+		Rate:          float64(rng.Int()%100) / 10,
+		ExchangeRate:  rng.Float64(),
+		PollutionRate: rng.Float32(),
+		IsDeleted:     rng.Int()%2 != 0,
+		PricesIDs:     rng.Int() % 100, //randIntArr(10, 7000, 50),
+		LocationID:    randLocationWithRand(rng),
 		StartTime:     startTime,
-		EndTime:       startTime + (rand.Int()%5)*1000,
+		EndTime:       startTime + (rng.Int()%5)*1000,
 		Actor: Actor{
-			Name: randString(),
+			Name: randStringWithRand(rng),
 		},
-		Uuid:      randUuid(),
-		UuidStore: randUuid(),
-		UuidArray: randUuidArray(rand.Int() % 20),
+		Uuid:      randUuidWithRand(rng),
+		UuidStore: randUuidWithRand(rng),
+		UuidArray: randUuidArrayWithRand(rng, rng.Int()%20),
 	}
 }
 
 func newTestItemWithSparse(id int, pkgsCount int) any {
-	startTime := rand.Int() % 50000
+	return newTestItemWithSparseWithRand(defaultTestRandSource{}, id, pkgsCount)
+}
+
+func newTestItemWithSparseWithRand(rng testRandSource, id int, pkgsCount int) any {
+	startTime := rng.Int() % 50000
 	return &TestItemWithSparse{
 		ID:            mkID(id),
-		Year:          rand.Int()%50 + 2000,
-		Genre:         int64(rand.Int() % 50),
-		Name:          randString(),
-		Age:           rand.Int() % 5,
-		AgeLimit:      int64(rand.Int()%10 + 40),
-		CompanyName:   randString(),
-		Address:       randString(),
-		PostalCode:    randPostalCode(),
-		Description:   randString(),
-		Packages:      randIntArr(pkgsCount, 10000, 50),
-		Rate:          float64(rand.Int()%100) / 10,
-		ExchangeRate:  rand.Float64(),
-		PollutionRate: rand.Float32(),
-		IsDeleted:     rand.Int()%2 != 0,
-		PricesIDs:     randIntArr(10, 7000, 50),
-		LocationID:    randLocation(),
+		Year:          rng.Int()%50 + 2000,
+		Genre:         int64(rng.Int() % 50),
+		Name:          randStringWithRand(rng),
+		Age:           rng.Int() % 5,
+		AgeLimit:      int64(rng.Int()%10 + 40),
+		CompanyName:   randStringWithRand(rng),
+		Address:       randStringWithRand(rng),
+		PostalCode:    randPostalCodeWithRand(rng),
+		Description:   randStringWithRand(rng),
+		Packages:      randIntArrWithRand(rng, pkgsCount, 10000, 50),
+		Rate:          float64(rng.Int()%100) / 10,
+		ExchangeRate:  rng.Float64(),
+		PollutionRate: rng.Float32(),
+		IsDeleted:     rng.Int()%2 != 0,
+		PricesIDs:     randIntArrWithRand(rng, 10, 7000, 50),
+		LocationID:    randLocationWithRand(rng),
 		StartTime:     startTime,
-		EndTime:       startTime + (rand.Int()%5)*1000,
+		EndTime:       startTime + (rng.Int()%5)*1000,
 		Actor: Actor{
-			Name: randString(),
+			Name: randStringWithRand(rng),
 		},
-		Uuid:      randUuid(),
-		UuidStore: randUuid(),
-		UuidArray: randUuidArray(rand.Int() % 20),
+		Uuid:      randUuidWithRand(rng),
+		UuidStore: randUuidWithRand(rng),
+		UuidArray: randUuidArrayWithRand(rng, rng.Int()%20),
 	}
 }
 
 func newTestItemNestedPK(id int, pkgsCount int) *TestItemNestedPK {
+	return newTestItemNestedPKWithRand(defaultTestRandSource{}, id, pkgsCount)
+}
+
+func newTestItemNestedPKWithRand(rng testRandSource, id int, pkgsCount int) *TestItemNestedPK {
 	return &TestItemNestedPK{
 		PrimaryID: mkID(id),
-		Nested:    *newTestItem(id+10, pkgsCount).(*TestItem),
+		Nested:    *newTestItemWithRand(rng, id+10, pkgsCount).(*TestItem),
 	}
 }
 
 func newTestItemObjectArray(id int, arrSize int) *TestItemObjectArray {
+	return newTestItemObjectArrayWithRand(defaultTestRandSource{}, id, arrSize)
+}
+
+func newTestItemObjectArrayWithRand(rng testRandSource, id int, arrSize int) *TestItemObjectArray {
 	arr := make([]objectType, 0, arrSize)
 
 	for i := 0; i < arrSize; i++ {
 		arr = append(arr, objectType{
-			Name: randString(),
-			Age:  rand.Int() % 50,
-			Rate: rand.Int() % 10,
-			Hash: rand.Int63() % 1000000 >> 1,
+			Name: randStringWithRand(rng),
+			Age:  rng.Int() % 50,
+			Rate: rng.Int() % 10,
+			Hash: rng.Int63() % 1000000 >> 1,
 		})
 	}
 
 	return &TestItemObjectArray{
 		ID:        id,
-		Code:      rand.Int63() % 10000 >> 1,
-		IsEnabled: (rand.Int() % 2) == 0,
-		Desc:      randString(),
+		Code:      rng.Int63() % 10000 >> 1,
+		IsEnabled: (rng.Int() % 2) == 0,
+		Desc:      randStringWithRand(rng),
 		Objects:   arr,
 		MainObj: objectType{
-			Name: randString(),
-			Age:  rand.Int() % 50,
-			Rate: rand.Int() % 10,
-			Hash: rand.Int63() % 1000000 >> 1,
+			Name: randStringWithRand(rng),
+			Age:  rng.Int() % 50,
+			Rate: rng.Int() % 10,
+			Hash: rng.Int63() % 1000000 >> 1,
 		},
-		Size:      rand.Int() % 200000,
-		Hash:      rand.Int63() % 1000000 >> 1,
-		Salt:      rand.Int() % 100000,
-		IsUpdated: (rand.Int() % 2) == 0,
+		Size:      rng.Int() % 200000,
+		Hash:      rng.Int63() % 1000000 >> 1,
+		Salt:      rng.Int() % 100000,
+		IsUpdated: (rng.Int() % 2) == 0,
 	}
 }
 
